@@ -1,0 +1,113 @@
+where clause
+db.employees.find() ;// find all the docs
+
+db.employees.find({empId:101})
+
+select * from employees where salary>5000
+db.employees.find({salary:{$gt:5000}})
+
+$gt, $lt,$eq,$gte,$lte,$ne,$nin,$in
+
+Logical operators: $and,$or, $not
+
+select * from employees where salary>5000 and deptId="d1"
+db.employees.find({
+$and:[{salary:{$gt:50000}},{deptId:"D1"}]
+})
+
+$or:
+db.employees.find({
+$or:[{salary:{$gt:50000}},{deptId:"D1"}]
+})
+
+$not: logical operator
+db.employees.find({deptId:{$not:{$eq:"D1"}}})
+//Docs with no deptId field and docs with deptid not equal to d1
+
+
+between
+
+db.employees.find({salary:{$gt:10000,$lt:20000}})
+
+
+Arrays:
+Exact match :
+db.zipcode.find({"loc": [-72.622739, 42.070206]})
+
+
+{"loc": { $gt:40}}
+2. Any of the elements should be >40
+
+Array elements where 2nd element should be greater than 40
+{"loc.1": { $gt:40}}
+
+
+Search for existence multiple values in the array
+db.students.insertMany([
+{studId:101,marks:[10,20,30]},
+{studId:101,marks:[20,10,30]},
+{studId:101,marks:[30,20,10]},
+{studId:101,marks:[80,50,70]},
+{studId:101,marks:[10,20,70]},
+{studId:101,marks:[90,90,90]}
+])
+
+Search for all the students who have scored 10 and 20
+db.students.find({marks:{$all:[10,20]}})
+
+$elemMatch:
+All the docs for which there is atleast single array element which has a score gte 8 and grade =A
+db.zipcode.find({
+grades:{
+	$elemMatch:{
+		$and:[
+			{"score":{$gte:14}},						{"grade":"A"}
+		     ]
+		   }
+	}
+})
+
+
+db.zipcode.find({
+$and:[{"grades.score":{$gte:14}},{"grades.grade":"A"}]
+})
+
+
+Get all the docs for which cuisine is Chinese and zipcode is gt 10000
+
+{$and:[{cuisine:"Chinese"},{"address.zipcode":{$gt:"10000"}}]}
+
+Get all the docs for which _id is of type of int:
+$type:
+$exists:
+
+null
+
+db.employees.updateOne({predicate condition},{how to update})
+db.employees.updateOne({empId:101},{$set:{salary:1000}})
+
+$inc
+db.employees.updateOne({empId:101},{$inc:{salary:1000}})
+
+
+Replace
+db.employees.update({condition},{replace document})
+db.employees.update({empId:101},{empName:"farah"})
+
+$unset : remove a particular column in a particular doc
+
+db.employees.updateOne({empId:102},{$unset:{empName:1}})
+
+$push
+$pop
+
+18 docs -- 101, 118
+db.employees.find().skip(5).limit(5)--// 6 to 10
+db.employees.find().limit(5).skip(5) --//0 records; 6 to 10 rec
+Optimise the query : always perform first skip and then limit
+
+
+
+
+
+

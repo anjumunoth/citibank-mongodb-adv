@@ -1,0 +1,107 @@
+Why mongodb
+Dynamic schema
+Scalability -- millions of records per day in data
+add multiple servers(commodity hardware)
+-- cost -- low
+-- availabilty -- replicate the data -- 365; 24/7
+-- horizontal scaling -- data is stored in multiple shards
+-- big data
+-- different devices
+-- agile methodology
+	-- scrums
+	-- 
+-- MERN, MEAN stack SPA -- based on javascript
+
+--Indexes and Aggregation pipeline
+	index on array, embedded object,geospatial data,partial data
+	Aggregation pipeline: transformation of data phase by phase
+
+In built cache memory --
+	cache -- most frequently accessed records -- cache memory
+
+			
+Sql server :
+	can i create an index on string, number,array
+
+
+
+Replication -- overhead -- memory, syncing the data
+cost per gb -- come down
+
+
+
+Schemas are fixed -- sql db
+
+Sql server db
+
+server -- 10 million records
+20 million records
+Upgrade the single server  -- RAM, cpu
+--Cost
+--single server -- fail-- app will fail
+--
+
+db.employees.insertMany([{empId:107,empName:"danny",salary:23},{empId:108,empName:"Sita",salary:23423},{empId:109,empName:"Gita",salary:236}])
+
+db.employees.insertMany([{empId:110,empName:"deepa",salary:4567823},{empId:111,empName:"Sita",salary:23423,_id:"asha"},{empId:112,empName:"Gita",salary:236}])
+
+
+
+1. Exception: duplicate key value; 110 will be inserted; 111 and 112 will not be inserted
+
+insert({}) or insert([])  -- soon deprecated
+insertMany() -- insert multiple docs
+insertOne() -- insert only one doc
+
+
+db.employees.insertOne({empId:111,empName:"deepak",salary:4567823,hobbies:["walking","surfing"]})
+
+db.employees.insertOne({empId:112,empName:"saurav",salary:7823,address:{houseno:20,streetName:"ramaswamy street",state:"tamil nadu"}})
+
+
+Replica set -- 50 members in a replica set; only 7 are eligible to vote
+Each member -- Priority(positive number), Votes(bool 1 or 0)
+votes - 1 -- vote in the election
+votes - 0 -- cannot vote in the election
+Priority - 0 - can never become the primary
+
+App 
+users -- India, US
+Replica set with 5 servers
+3 servers in india (n1(chennai-- priority -10),n2(jammu-- priority - 2),n3(assam priority -6))
+2 servers in US(n4-- priority-6,n5--priority-0)
+
+N1 goes down
+Fair election process-(should be completed in 12 sec)
+1. Node with the highest priority
+2. If same priority 
+	2a. select the primary preferred node(node which has been a primary earlier)
+	2b. select the node which has completely synced with the primary
+	2c. Both the nodes satisfy 2b, if arbiter is present,(special secondary node with priority as 0; but has voting power(votes --1) will cast the vote if there is a tie) 
+	2d. No arbiter: break the tie: round robin mechanism
+
+N3 becomes primary
+After 5 sec, N1 comes up -- remain secondary;
+Later whenever election happens -- n1(primary preferred ) has the highest probabilty of becoming the primary
+
+write op -- fail for the first time -- primary is dowm
+mongodb driver -- retry once -- primary is up -- write op successful
+
+CAP -- A()P; eventual consistency - secondary asynchronously sync with the primary
+
+Primary has finished writing -- make an entry in the journal; success 
+primary has gone down; secondaries will replay the entries in the journal
+None of the secondaries have synced with the primary:
+
+Oplog collection -- sync
+Journal
+
+
+
+
+
+
+
+
+
+
