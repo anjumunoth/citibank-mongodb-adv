@@ -1,0 +1,315 @@
+Update
+
+Add an array to doc
+db.employees.updateOne({empId:103},
+{$push:{hobbies:"walking"}})
+
+db.employees.updateOne({empId:103},
+{$push:{hobbies:["singing","dancing"]}})
+
+Append multiple values to array
+db.employees.updateOne({empId:103},
+{$push:{hobbies:{$each:["cooking","surfing"]}}})
+
+Use slice operator
+db.employees.updateOne({empId:103},
+{$push:{hobbies:{
+			$each:["gardening","travelling"],
+			$slice:6
+		}}})
+
+$set: -- set the value of a field to a particular value
+$push -- add an array element/ append an element to the set
+
+Add elements in the middle : $position -- can be used only with $each
+db.employees.updateOne({empId:103},
+{$push:{hobbies:{
+			$each:["gardening","travelling"],
+			$position:1
+		}}})
+
+
+db.employees.updateOne({empId:103},
+{$push:{hobbies:{
+			$each:["gardening","travelling"],
+			$position:-2
+		}}})
+
+
+$addToSet
+Set data type -- array which have only distinct values
+db.employees.updateOne({empId:103},
+{$addToSet:{hobbies:"walking"}})
+
+
+$pop
+db.employees.update({empId:103},{$pop:{hobbies:1}});// remove the last element
+db.employees.update({empId:103},{$pop:{hobbies:-1}});// remove the first element
+
+$pull:
+db.employees.update({empId:103},{$pull:{hobbies:"walking"}})
+
+db.employees.update({empId:103},{$pull:{hobbies:{$in:["trekking","gardening]}}})
+
+
+1. Add the values to hobbies: H1,H2 at the beginning of the array and maintain the size of the array to 5;
+db.employees.update({empId:103},{
+$push:{hobbies:{
+	$each:["H1","H2"],
+	$position:0,
+	$slice:5
+}}
+})
+
+select count(salary) from employees;
+
+count,max,min,avg,sum -- aggregate functions
+
+select sum(salary),deptId from employees group by deptId
+
+Aggregation pipeline:
+Pipeline : output of the a phase becomes the input for the next phase
+
+multiple stages
+Input for a stage1: : transform the data -- output 
+Stage 2: Output of stage1 becomes the input -- transform the data -- output
+
+db.employees.aggregate([{},{},{}])
+
+select sum(salary) as SumSalaryByDeptId,deptId from employees group by deptId:
+1. from employees
+2. group by dept id
+3. sum(salary)
+
+db.employees.aggregate([
+{
+$group:{
+	_id:"$deptId",
+	SumSalaryByDeptId:{$sum:"$salary"}
+}
+}])
+
+db.zipcode.aggregate([
+{
+$group:{
+	_id:"$state",
+	SumPopulationByState:{$sum:"$pop"}
+}
+}])
+
+db.zipcode.aggregate([{$group: {
+  _id: "$state",
+  SumOfPopAccToState: {
+    $sum: "$pop"
+  },
+   MinOfPopAccToState: {
+    $min: "$pop",
+
+      },
+  CountOfDocsForEachState:{
+    $sum:1
+  }
+}}, {$project: {
+ SumOfPopAccToState:1,
+ _id:0,
+ MinOfPopAccToState:1,
+ "StateName":"$_id"
+}}])
+
+Example2:
+[{$group: {
+  _id: {f1:"$state",f2:"$city"},
+  "SumOfPopAccToStateAndCity": {
+    $sum: "$pop"
+  }
+}}, {$project: {
+  SumOfPopAccToStateAndCity:1,
+  _id:0,
+  "State":"$_id.f1",
+  "City":"$_id.f2",
+  "StateInLower":{$toLower:"$_id.f1"}
+}}]
+
+
+select sum(pop),state,city from zipcode where city like "a%" group by state,city
+1. from zipcode
+2. where clause
+3. group by 
+4. project 
+
+[{$match: {
+  $and:[{ city:/^a/i},{ state:/^a/i}]
+
+ }}, {$group: {
+  _id: {f1:"$state",f2:"$city"},
+  "SumOfPopAccToStateAndCity": {
+    $sum: "$pop"
+  }
+}}, {$project: {
+  SumOfPopAccToStateAndCity:1,
+  _id:0,
+  "State":"$_id.f1",
+  "City":"$_id.f2",
+  "StateInLower":{$toLower:"$_id.f1"}
+}}]
+
+
+select sum(pop),state,city from zipcode where city like "a%" group by state,city having sum(pop)>5000
+
+1. from zipcode
+2. where clause -- match stage
+3. group by 
+4. having -- match
+5. project 
+[{$match: {
+  $and:[{ city:/^a/i},{ state:/^a/i}]
+
+ }}, {$group: {
+  _id: {f1:"$state",f2:"$city"},
+  "SumOfPopAccToStateAndCity": {
+    $sum: "$pop"
+  }
+}}, {$match: {
+  SumOfPopAccToStateAndCity:{$gt:5000}
+}}, {$project: {
+  SumOfPopAccToStateAndCity:1,
+  _id:0,
+  "State":"$_id.f1",
+  "City":"$_id.f2",
+  "StateInLower":{$toLower:"$_id.f1"}
+}}]
+
+
+
+Example
+select sum(pop),state,city from zipcode where city like "a%" group by state,city having sum(pop)>5000 order by 1
+
+1. from zipcode
+2. where clause -- match stage
+3. group by 
+4. having -- match
+5.orderby
+6. project 
+
+
+create table emp1 as select * from employees
+
+
+_id: Immutable(Once assigned, cannot be changed), unique, can have one null value, a unique index which cannot be dropped explicitly will be created when the collection is created on the _id field
+
+Indexes:
+1. No need of doing full collection scan
+2. Performance benefits
+3. Work with queries and sorting 
+
+Indexes:
+1. Simple  -- index on a single field
+Field -- string,number,bool,object,array,geospatial data
+
+Sort order: Asc, desc
+
+Adv in simple index : Traverse in both the directions
+
+db.employees.createIndex({salary:1})
+Index name : salary_1  (Best practice)
+
+B-tree Index
+
+Index: 
+Properties:
+1. Unique - can have one null 
+2. Sparse Index :
+20 docs -- 5 docs have deptId
+create an index on deptId : sparse index
+
+3. Partial index : Index based on a condition
+empId; condition : empId > 0
+Only the docs which satisfy the condition will be taken for generation of index
+It will be created only when there is no existing index on the same field and same sort order
+
+4. TTL index 
+Total time to live -- Very different index
+
+
+5. Text index
+6. Wild card index
+
+Types of indexes:
+1. Simple index
+2. Compound index- Index on multiple fields
+3. Hash index: 
+4. Multi key index : Simple index on array field
+
+Can i create 2 indexes on the same field with only the sort order different -- yes
+
+db.zipcode.find({state:"MA"})
+2 indexes
+state_1
+state_1_city_-1
+
+Which index will be used:Compound index -- hint
+
+db.zipcode.find({city:"ASDF"})
+state_1
+state_1_city_-1
+
+Will it use the compound index -- no 
+Preceeding field not there
+
+Use case of ttl : Logging Info, Session info of users : 30 mins
+
+db.emp.createIndex({lastUpdatedTimeStamp:1},{expiryAfterSeconds:(30*24*60*60)})
+
+db.emp.createIndex({recordInsertedTime:1},{expiryAfterSeconds:(15*24*60*60)})
+
+createdDate -current date for insertion -- ttl index ; expiry - 6 months -- doc will be deleted
+
+modifiedDate -- ttl index - 30 days
+modifiedDate: 25-8-2021
+Doc be removed on 25-9-2021
+On a particular day before deletion : modifiedDate: 25-10-2021
+Doc be removed on 25-11-2021
+
+db.collName.getIndexes()
+
+
+pl-sql
+cursor
+javascript
+production: get all the ttl in a particular db
+cursor
+var collArr=db.getCollections()
+// traverse the collArr;
+for(i=0;i<collArr.length;i++)
+{
+	collArr[i].getIndexes()
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
